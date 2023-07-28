@@ -4,12 +4,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.john.guardian.viewmodels.GuardianDashboardViewModel
+import com.john.guardian.viewmodels.NewsSectionViewModel
+
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
-            GuardianDashboardViewModel(
+            NewsSectionViewModel(
                 guardianApplication().container.repository
             )
         }
