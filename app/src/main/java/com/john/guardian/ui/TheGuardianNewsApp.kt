@@ -21,8 +21,12 @@ fun TheGuardianNewsApp(navController: NavHostController = rememberNavController(
 
     NewsSectionHomeScreen(
         sectionState = sectionState,
-        onTapPressed = {},
+        onTapPressed = { newsType ->
+            viewModel.updateCurrentNewsType(newsType)
+            viewModel.resetHomeScreenStates()
+        },
         onSectionPressed = {},
-        modifier = Modifier)
+        modifier = Modifier
+    )
 
 }

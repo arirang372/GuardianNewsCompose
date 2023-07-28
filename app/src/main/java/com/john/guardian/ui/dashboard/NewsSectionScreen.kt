@@ -161,7 +161,7 @@ fun NewsSectionContent(
     onSectionPressed: (Section) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sections: List<Section> = sectionState.news[sectionState.currentNewsType]!!
+    val sections: List<Section> = sectionState.newsSections[sectionState.currentNewsType]!!
 
     LazyColumn(modifier = modifier.padding(horizontal = 16.dp)) {
         item {
