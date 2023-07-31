@@ -1,4 +1,4 @@
-package com.john.guardian.ui.dashboard
+package com.john.guardian.ui.section
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -34,7 +34,9 @@ import com.john.guardian.R
 import com.john.guardian.data.NewsSectionState
 import com.john.guardian.data.NewsSectionUiState
 import com.john.guardian.data.NewsType
+import com.john.guardian.models.Article
 import com.john.guardian.models.Section
+import com.john.guardian.ui.article.NewsArticleScreen
 import com.john.guardian.ui.navigation.NavigationDestination
 
 
@@ -49,6 +51,7 @@ fun NewsSectionHomeScreen(
     sectionState: NewsSectionState,
     onTapPressed: (NewsType) -> Unit,
     onSectionPressed: (Section) -> Unit,
+    onArticleBackPressed: () -> Unit,
     modifier: Modifier
 ) {
     when (sectionState.uiState) {
@@ -59,13 +62,16 @@ fun NewsSectionHomeScreen(
         )
 
         is NewsSectionUiState.Success ->
-            NewSectionsScreen(sectionState = sectionState,
-            onTapPressed = onTapPressed,
-            onSectionPressed = onSectionPressed,
-            modifier.fillMaxSize())
+            NewSectionsScreen(
+                sectionState = sectionState,
+                onTapPressed = onTapPressed,
+                onSectionPressed = onSectionPressed,
+                onArticleBackPressed = onArticleBackPressed,
+                modifier.fillMaxSize()
+            )
 
         is NewsSectionUiState.Error ->
-            ErrorScreen(error = (sectionState.uiState as NewsSectionUiState.Error).message)
+            ErrorScreen(error = sectionState.uiState.message)
     }
 }
 
@@ -74,6 +80,7 @@ private fun NewSectionsScreen(
     sectionState: NewsSectionState,
     onTapPressed: (NewsType) -> Unit,
     onSectionPressed: (Section) -> Unit,
+    onArticleBackPressed: () -> Unit,
     modifier: Modifier
 ) {
     val navItemContentList = listOf(
@@ -83,7 +90,7 @@ private fun NewSectionsScreen(
             text = stringResource(id = R.string.article)
         ),
         NavigationItemContent(
-            newsType = NewsType.Live,
+            newsType = NewsType.LiveBlog,
             icon = Icons.Default.Send,
             text = stringResource(id = R.string.live)
         )
@@ -97,7 +104,12 @@ private fun NewSectionsScreen(
             modifier = modifier
         )
     } else {
-
+        NewsArticleScreen(
+            sectionState = sectionState,
+            modifier = modifier,
+            onBackPressed = onArticleBackPressed,
+            onArticlePressed = {}
+        )
     }
 }
 
