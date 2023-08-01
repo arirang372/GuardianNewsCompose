@@ -38,14 +38,13 @@ class NewsSectionViewModel(private val repository: GuardianNewsRepository) : Vie
     }
 
     private fun fetchSections() = viewModelScope.launch {
-
         try {
             val response = repository.getSections().response
             _sectionState.value =
                 _sectionState.value.copy(
                     newsSections = mapOf(
                         NewsType.Article to response.results,
-                        NewsType.Live to response.results
+                        NewsType.LiveBlog to response.results
                     ),
                     uiState = NewsSectionUiState.Success(response.results)
                 )
@@ -57,4 +56,5 @@ class NewsSectionViewModel(private val repository: GuardianNewsRepository) : Vie
                 )
         }
     }
+
 }

@@ -1,11 +1,10 @@
-package com.john.guardian.ui.dashboard
+package com.john.guardian.ui.section
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,8 +20,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,27 +32,36 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.gson.Gson
+import com.john.guardian.AppViewModelProvider
 import com.john.guardian.R
 import com.john.guardian.data.NewsSectionState
 import com.john.guardian.data.NewsSectionUiState
 import com.john.guardian.data.NewsType
 import com.john.guardian.models.Section
+import com.john.guardian.ui.TheGuardianTopAppBar
 import com.john.guardian.ui.navigation.NavigationDestination
+import com.john.guardian.viewmodels.NewsSectionViewModel
 
 
-object DashboardDestination : NavigationDestination {
-    override val route = "article"
-    override val titleRes = R.string.article
+object NewsSectionDestination : NavigationDestination {
+    override val route = "sections"
+    override val titleRes = R.string.app_name
 }
-
 
 @Composable
 fun NewsSectionHomeScreen(
-    sectionState: NewsSectionState,
-    onTapPressed: (NewsType) -> Unit,
-    onSectionPressed: (Section) -> Unit,
-    modifier: Modifier
+    navigateToArticles: (String, String) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: NewsSectionViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    val sectionState by viewModel.sectionState.collectAsState()
+
+    val onTapPressed: (NewsType) -> Unit = { newsType ->
+        viewModel.updateCurrentNewsType(newsType)
+        viewModel.resetHomeScreenStates()
+    }
     when (sectionState.uiState) {
         is NewsSectionUiState.Loading -> LoadingScreen(
             modifier
@@ -59,10 +70,12 @@ fun NewsSectionHomeScreen(
         )
 
         is NewsSectionUiState.Success ->
-            NewSectionsScreen(sectionState = sectionState,
-            onTapPressed = onTapPressed,
-            onSectionPressed = onSectionPressed,
-            modifier.fillMaxSize())
+            NewSectionsScreen(
+                sectionState = sectionState,
+                onTapPressed = onTapPressed,
+                onSectionPressed = navigateToArticles,
+                modifier.fillMaxSize()
+            )
 
         is NewsSectionUiState.Error ->
             ErrorScreen(error = (sectionState.uiState as NewsSectionUiState.Error).message)
@@ -73,7 +86,7 @@ fun NewsSectionHomeScreen(
 private fun NewSectionsScreen(
     sectionState: NewsSectionState,
     onTapPressed: (NewsType) -> Unit,
-    onSectionPressed: (Section) -> Unit,
+    onSectionPressed: (String, String) -> Unit,
     modifier: Modifier
 ) {
     val navItemContentList = listOf(
@@ -83,21 +96,28 @@ private fun NewSectionsScreen(
             text = stringResource(id = R.string.article)
         ),
         NavigationItemContent(
-            newsType = NewsType.Live,
+            newsType = NewsType.LiveBlog,
             icon = Icons.Default.Send,
             text = stringResource(id = R.string.live)
         )
     )
-    if (sectionState.isShowingHomepage) {
+
+    Scaffold(topBar = {
+        TheGuardianTopAppBar(
+            title =
+            stringResource(
+                id =
+                NewsSectionDestination.titleRes
+            ), canNavigateBack = false
+        )
+    }) { innerPadding ->
         NewsSectionContent(
             sectionState = sectionState,
             onTapPressed = onTapPressed,
             onSectionPressed = onSectionPressed,
             navItemContentList = navItemContentList,
-            modifier = modifier
+            modifier = modifier.padding(innerPadding)
         )
-    } else {
-
     }
 }
 
@@ -127,7 +147,7 @@ fun ErrorScreen(modifier: Modifier = Modifier, error: String) {
 private fun NewsSectionContent(
     sectionState: NewsSectionState,
     onTapPressed: (NewsType) -> Unit,
-    onSectionPressed: (Section) -> Unit,
+    onSectionPressed: (String, String) -> Unit,
     navItemContentList: List<NavigationItemContent>,
     modifier: Modifier
 ) {
@@ -136,7 +156,7 @@ private fun NewsSectionContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.inverseOnSurface)
     ) {
-        NewsSectionContent(
+        NewsSectionContents(
             sectionState = sectionState,
             onSectionPressed = onSectionPressed,
             modifier = Modifier.weight(1f)
@@ -156,45 +176,25 @@ private fun NewsSectionContent(
 
 
 @Composable
-fun NewsSectionContent(
+fun NewsSectionContents(
     sectionState: NewsSectionState,
-    onSectionPressed: (Section) -> Unit,
+    onSectionPressed: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val sections: List<Section> = sectionState.newsSections[sectionState.currentNewsType]!!
 
     LazyColumn(modifier = modifier.padding(horizontal = 16.dp)) {
-        item {
-            NewsSectionTopBar(
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
         items(sections, key = { section -> section.sectionName!! }) { section ->
             NewsSectionListItem(
                 section = section,
                 onCardClick = {
-                    onSectionPressed(section)
+                    val sectionString = Gson().toJson(section)
+                    onSectionPressed(sectionString, sectionState.currentNewsType.name)
                 })
         }
     }
 }
 
-@Composable
-private fun NewsSectionTopBar(
-    modifier: Modifier = Modifier
-) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Text(
-            text = stringResource(id = R.string.app_name)
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
