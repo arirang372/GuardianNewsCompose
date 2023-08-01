@@ -9,9 +9,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.john.guardian.ui.article.NewsArticlesDestination
 import com.john.guardian.ui.article.NewsArticleScreen
-import com.john.guardian.ui.section.NewsSectionDestination
-import com.john.guardian.ui.section.NewsSectionHomeScreen
-
+import com.john.guardian.ui.section.NewsDashboardScreen
+import com.john.guardian.ui.section.NewsDashboardDestination
 
 @Composable
 fun TheGuardianNewsNavHost(
@@ -20,13 +19,13 @@ fun TheGuardianNewsNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = NewsSectionDestination.route,
+        startDestination = NewsDashboardDestination.route,
         modifier = modifier
     ) {
         composable(
-            route = NewsSectionDestination.route
+            route = NewsDashboardDestination.route
         ) {
-            NewsSectionHomeScreen(
+            NewsDashboardScreen(
                 navigateToArticles = { section: String, articleType: String ->
                     navController.navigate("${NewsArticlesDestination.route}?section=${section}&articleType=${articleType}")
                 }

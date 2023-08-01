@@ -36,55 +36,55 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.gson.Gson
 import com.john.guardian.AppViewModelProvider
 import com.john.guardian.R
-import com.john.guardian.data.NewsSectionState
-import com.john.guardian.data.NewsSectionUiState
+import com.john.guardian.data.NewsDashboardState
+import com.john.guardian.data.NewsDashboardUiState
 import com.john.guardian.data.NewsType
 import com.john.guardian.models.Section
 import com.john.guardian.ui.TheGuardianTopAppBar
 import com.john.guardian.ui.navigation.NavigationDestination
-import com.john.guardian.viewmodels.NewsSectionViewModel
+import com.john.guardian.viewmodels.NewsDashboardViewModel
 
 
-object NewsSectionDestination : NavigationDestination {
+object NewsDashboardDestination : NavigationDestination {
     override val route = "sections"
     override val titleRes = R.string.app_name
 }
 
 @Composable
-fun NewsSectionHomeScreen(
+fun NewsDashboardScreen(
     navigateToArticles: (String, String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NewsSectionViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: NewsDashboardViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val sectionState by viewModel.sectionState.collectAsState()
+    val dashboardState by viewModel.dashboardState.collectAsState()
 
     val onTapPressed: (NewsType) -> Unit = { newsType ->
         viewModel.updateCurrentNewsType(newsType)
         viewModel.resetHomeScreenStates()
     }
-    when (sectionState.uiState) {
-        is NewsSectionUiState.Loading -> LoadingScreen(
+    when (dashboardState.uiState) {
+        is NewsDashboardUiState.Loading -> LoadingScreen(
             modifier
                 .fillMaxSize()
                 .size(200.dp)
         )
 
-        is NewsSectionUiState.Success ->
-            NewSectionsScreen(
-                sectionState = sectionState,
+        is NewsDashboardUiState.Success ->
+            NewsDashboardSuccessScreen(
+                dashboardState = dashboardState,
                 onTapPressed = onTapPressed,
                 onSectionPressed = navigateToArticles,
                 modifier.fillMaxSize()
             )
 
-        is NewsSectionUiState.Error ->
-            ErrorScreen(error = (sectionState.uiState as NewsSectionUiState.Error).message)
+        is NewsDashboardUiState.Error ->
+            ErrorScreen(error = (dashboardState.uiState as NewsDashboardUiState.Error).message)
     }
 }
 
 @Composable
-private fun NewSectionsScreen(
-    sectionState: NewsSectionState,
+private fun NewsDashboardSuccessScreen(
+    dashboardState: NewsDashboardState,
     onTapPressed: (NewsType) -> Unit,
     onSectionPressed: (String, String) -> Unit,
     modifier: Modifier
@@ -107,12 +107,12 @@ private fun NewSectionsScreen(
             title =
             stringResource(
                 id =
-                NewsSectionDestination.titleRes
+                NewsDashboardDestination.titleRes
             ), canNavigateBack = false
         )
     }) { innerPadding ->
-        NewsSectionContent(
-            sectionState = sectionState,
+        NewsDashboardSectionContent(
+            dashboardState = dashboardState,
             onTapPressed = onTapPressed,
             onSectionPressed = onSectionPressed,
             navItemContentList = navItemContentList,
@@ -144,8 +144,8 @@ fun ErrorScreen(modifier: Modifier = Modifier, error: String) {
 
 
 @Composable
-private fun NewsSectionContent(
-    sectionState: NewsSectionState,
+private fun NewsDashboardSectionContent(
+    dashboardState: NewsDashboardState,
     onTapPressed: (NewsType) -> Unit,
     onSectionPressed: (String, String) -> Unit,
     navItemContentList: List<NavigationItemContent>,
@@ -156,16 +156,16 @@ private fun NewsSectionContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.inverseOnSurface)
     ) {
-        NewsSectionContents(
-            sectionState = sectionState,
+        NewsDashboardColumnContents(
+            dashboardState = dashboardState,
             onSectionPressed = onSectionPressed,
             modifier = Modifier.weight(1f)
         )
 
         AnimatedVisibility(visible = true) {
             val bottomNavContentDescription = stringResource(id = R.string.navigation_bottom)
-            NewsSectionNavigationBar(
-                currentTab = sectionState.currentNewsType,
+            NewsDashboardNavigationBar(
+                currentTab = dashboardState.currentNewsType,
                 onTapPressed = onTapPressed,
                 navItemContentList = navItemContentList,
                 modifier = Modifier.testTag(bottomNavContentDescription)
@@ -176,12 +176,12 @@ private fun NewsSectionContent(
 
 
 @Composable
-fun NewsSectionContents(
-    sectionState: NewsSectionState,
+fun NewsDashboardColumnContents(
+    dashboardState: NewsDashboardState,
     onSectionPressed: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sections: List<Section> = sectionState.newsSections[sectionState.currentNewsType]!!
+    val sections: List<Section> = dashboardState.newsSections[dashboardState.currentNewsType]!!
 
     LazyColumn(modifier = modifier.padding(horizontal = 16.dp)) {
         items(sections, key = { section -> section.sectionName!! }) { section ->
@@ -189,7 +189,7 @@ fun NewsSectionContents(
                 section = section,
                 onCardClick = {
                     val sectionString = Gson().toJson(section)
-                    onSectionPressed(sectionString, sectionState.currentNewsType.name)
+                    onSectionPressed(sectionString, dashboardState.currentNewsType.name)
                 })
         }
     }
@@ -224,7 +224,7 @@ fun NewsSectionListItem(
 
 
 @Composable
-private fun NewsSectionNavigationBar(
+private fun NewsDashboardNavigationBar(
     currentTab: NewsType,
     onTapPressed: (NewsType) -> Unit,
     navItemContentList: List<NavigationItemContent>,

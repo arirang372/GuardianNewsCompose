@@ -3,8 +3,8 @@ package com.john.guardian.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.john.guardian.data.GuardianNewsRepository
-import com.john.guardian.data.NewsSectionState
-import com.john.guardian.data.NewsSectionUiState
+import com.john.guardian.data.NewsDashboardState
+import com.john.guardian.data.NewsDashboardUiState
 import com.john.guardian.data.NewsType
 import com.john.guardian.models.Section
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,17 +12,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class NewsSectionViewModel(private val repository: GuardianNewsRepository) : ViewModel() {
+class NewsDashboardViewModel(private val repository: GuardianNewsRepository) : ViewModel() {
 
-    private val _sectionState = MutableStateFlow(NewsSectionState())
-    val sectionState: StateFlow<NewsSectionState> = _sectionState
+    private val _dashboardState = MutableStateFlow(NewsDashboardState())
+    val dashboardState: StateFlow<NewsDashboardState> = _dashboardState
 
     init {
         fetchSections()
     }
 
     fun updateCurrentNewsType(newsType: NewsType) {
-        _sectionState.update {
+        _dashboardState.update {
             it.copy(
                 currentNewsType = newsType
             )
@@ -30,7 +30,7 @@ class NewsSectionViewModel(private val repository: GuardianNewsRepository) : Vie
     }
 
     fun resetHomeScreenStates() {
-        _sectionState.update {
+        _dashboardState.update {
             it.copy(
                 currentSelectedSection = it.newsSections[it.currentNewsType]?.get(0) ?: Section(id = 0)
             )
@@ -40,19 +40,19 @@ class NewsSectionViewModel(private val repository: GuardianNewsRepository) : Vie
     private fun fetchSections() = viewModelScope.launch {
         try {
             val response = repository.getSections().response
-            _sectionState.value =
-                _sectionState.value.copy(
+            _dashboardState.value =
+                _dashboardState.value.copy(
                     newsSections = mapOf(
                         NewsType.Article to response.results,
                         NewsType.LiveBlog to response.results
                     ),
-                    uiState = NewsSectionUiState.Success(response.results)
+                    uiState = NewsDashboardUiState.Success(response.results)
                 )
 
         } catch (exception: Exception) {
-            _sectionState.value =
-                _sectionState.value.copy(
-                    uiState = NewsSectionUiState.Error(exception.toString())
+            _dashboardState.value =
+                _dashboardState.value.copy(
+                    uiState = NewsDashboardUiState.Error(exception.toString())
                 )
         }
     }
