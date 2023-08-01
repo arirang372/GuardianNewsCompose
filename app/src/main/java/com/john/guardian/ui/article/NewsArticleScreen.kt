@@ -1,24 +1,19 @@
 package com.john.guardian.ui.article
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,20 +29,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.john.guardian.AppViewModelProvider
 import com.john.guardian.R
 import com.john.guardian.data.NewsArticlesState
 import com.john.guardian.data.NewsArticlesUiState
-import com.john.guardian.data.NewsSectionState
 import com.john.guardian.models.Article
 import com.john.guardian.ui.TheGuardianTopAppBar
 import com.john.guardian.ui.navigation.NavigationDestination
 import com.john.guardian.ui.section.ErrorScreen
 import com.john.guardian.ui.section.LoadingScreen
 import com.john.guardian.viewmodels.NewsArticlesViewModel
-
+import kotlinx.coroutines.flow.Flow
 
 object NewsArticlesDestination : NavigationDestination {
     override val route = "articles"
@@ -98,7 +96,7 @@ private fun NewsArticlesScreen(
             title = articlesState.selectedSection.sectionName.orEmpty(),
             canNavigateBack = true,
             navigateUp = onBackPressed
-            )
+        )
     }) { innerPadding ->
         NewsArticlesContent(
             articlesState = articlesState,
@@ -107,12 +105,16 @@ private fun NewsArticlesScreen(
     }
 }
 
+@SuppressLint("RememberReturnType")
 @Composable
 private fun NewsArticlesContent(
     articlesState: NewsArticlesState,
     modifier: Modifier = Modifier,
     onArticlePressed: (Article) -> Unit = {}
 ) {
+    val pagerData: Flow<PagingData<Article>> = articlesState.selectedSection.pagerData
+    val lazyPagingItems: LazyPagingItems<Article> = pagerData.collectAsLazyPagingItems()
+
     LazyColumn(
         modifier = modifier
             .testTag(stringResource(id = R.string.articles_screen))
@@ -120,16 +122,36 @@ private fun NewsArticlesContent(
             .background(color = MaterialTheme.colorScheme.inverseOnSurface)
             .padding(top = 24.dp)
     ) {
-        items(articlesState.selectedSection.articles.orEmpty(),
-            key = { article -> article.webTitle!! }) { article ->
+        if (lazyPagingItems.loadState.refresh == LoadState.Loading) {
+            item {
+                Text(
+                    text = "Waiting for items to load from the backend",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                )
+            }
+        }
+
+        items(count = lazyPagingItems.itemCount) { index ->
+            val article = lazyPagingItems[index]!!
             NewsArticleListItem(
                 article = article,
                 onCardClick = { onArticlePressed(article) }
             )
         }
+
+        if (lazyPagingItems.loadState.append == LoadState.Loading) {
+            item {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                )
+            }
+        }
     }
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,49 +197,5 @@ private fun NewsArticleListItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
-
-
-@Composable
-private fun ArticleScreenTopBar(
-    onBackButtonClicked: () -> Unit,
-    sectionState: NewsSectionState,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = onBackButtonClicked,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .background(
-                    MaterialTheme.colorScheme.surface,
-                    shape = CircleShape
-                )
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = stringResource(id = R.string.back)
-            )
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        ) {
-            Text(
-                text = sectionState.currentSelectedSection.sectionName.orEmpty(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
     }
 }

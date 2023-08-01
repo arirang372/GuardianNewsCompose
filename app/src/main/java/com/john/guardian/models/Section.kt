@@ -1,11 +1,11 @@
 package com.john.guardian.models
 
 
-import android.os.Parcelable
+import androidx.paging.PagingData
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.Parcelize
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
-@Parcelize
 data class Section(
     @SerializedName("primary_id")
     val id: Int,
@@ -13,8 +13,9 @@ data class Section(
     val webTitle: String? = "",
     val webUrl: String? = "",
     val apiUrl: String? = "",
-    var articles: List<Article>? = mutableListOf()
-) : Comparable<Section>, Parcelable {
+    var articles: List<Article>? = mutableListOf(),
+    var pagerData: Flow<PagingData<Article>> = flow { PagingData.empty<Article>() }
+) : Comparable<Section> {
     override fun compareTo(other: Section) = 0
 
     @ExperimentalStdlibApi
