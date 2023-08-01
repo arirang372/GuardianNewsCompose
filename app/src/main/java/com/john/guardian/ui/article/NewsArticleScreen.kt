@@ -1,6 +1,5 @@
 package com.john.guardian.ui.article
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,8 +20,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -31,54 +33,86 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.john.guardian.AppViewModelProvider
 import com.john.guardian.R
-import com.john.guardian.data.NewsArticleUiState
+import com.john.guardian.data.NewsArticlesState
+import com.john.guardian.data.NewsArticlesUiState
 import com.john.guardian.data.NewsSectionState
 import com.john.guardian.models.Article
+import com.john.guardian.ui.TheGuardianTopAppBar
+import com.john.guardian.ui.navigation.NavigationDestination
 import com.john.guardian.ui.section.ErrorScreen
 import com.john.guardian.ui.section.LoadingScreen
+import com.john.guardian.viewmodels.NewsArticlesViewModel
 
+
+object NewsArticlesDestination : NavigationDestination {
+    override val route = "articles"
+    override val titleRes = R.string.article
+    const val section = "section"
+    const val articleType = "articleType"
+    val routeWithArgs = "$route?section={$section}&articleType={$articleType}"
+}
 
 @Composable
 fun NewsArticleScreen(
-    sectionState: NewsSectionState,
+    navigateToArticle: (Article) -> Unit,
+    navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    onBackPressed: () -> Unit = {},
-    onArticlePressed: (Article) -> Unit
+    viewModel: NewsArticlesViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    when (sectionState.articleUiState) {
-        is NewsArticleUiState.Loading -> LoadingScreen(
+    val articlesState by viewModel.articlesState.collectAsState()
+    when (articlesState.uiState) {
+        is NewsArticlesUiState.Loading -> LoadingScreen(
             modifier
                 .fillMaxSize()
                 .size(200.dp)
         )
 
-        is NewsArticleUiState.Success ->
+        is NewsArticlesUiState.Success ->
             NewsArticlesScreen(
-                sectionState = sectionState,
+                articlesState = articlesState,
                 modifier = modifier,
-                onBackPressed = onBackPressed,
-                onArticlePressed = onArticlePressed
+                onBackPressed = navigateBack,
+                onArticlePressed = navigateToArticle
             )
 
-        is NewsArticleUiState.Error ->
-            ErrorScreen(error = sectionState.articleUiState.message)
+        is NewsArticlesUiState.Error ->
+            ErrorScreen(error = (articlesState.uiState as NewsArticlesUiState.Error).message)
     }
 }
 
 @Composable
 private fun NewsArticlesScreen(
-    sectionState: NewsSectionState,
+    articlesState: NewsArticlesState,
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit = {},
     onArticlePressed: (Article) -> Unit
 ) {
-    BackHandler {
-        onBackPressed()
-    }
 
+    Scaffold(topBar = {
+        TheGuardianTopAppBar(
+            title = articlesState.selectedSection.sectionName.orEmpty(),
+            canNavigateBack = true,
+            navigateUp = onBackPressed
+            )
+    }) { innerPadding ->
+        NewsArticlesContent(
+            articlesState = articlesState,
+            modifier = modifier.padding(innerPadding)
+        )
+    }
+}
+
+@Composable
+private fun NewsArticlesContent(
+    articlesState: NewsArticlesState,
+    modifier: Modifier = Modifier,
+    onArticlePressed: (Article) -> Unit = {}
+) {
     LazyColumn(
         modifier = modifier
             .testTag(stringResource(id = R.string.articles_screen))
@@ -86,13 +120,7 @@ private fun NewsArticlesScreen(
             .background(color = MaterialTheme.colorScheme.inverseOnSurface)
             .padding(top = 24.dp)
     ) {
-        item {
-            ArticleScreenTopBar(
-                onBackButtonClicked = onBackPressed,
-                sectionState = sectionState
-            )
-        }
-        items(sectionState.currentSelectedSection.articles.orEmpty(),
+        items(articlesState.selectedSection.articles.orEmpty(),
             key = { article -> article.webTitle!! }) { article ->
             NewsArticleListItem(
                 article = article,
@@ -101,6 +129,7 @@ private fun NewsArticlesScreen(
         }
     }
 }
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)

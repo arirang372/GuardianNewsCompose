@@ -9,7 +9,7 @@ data class NewsSectionState(
     val currentSelectedSection: Section = Section(id = 0),
     val isShowingHomepage: Boolean = true,
     val uiState: NewsSectionUiState = NewsSectionUiState.Loading,
-    val articleUiState: NewsArticleUiState = NewsArticleUiState.Loading
+   // val articleUiState: NewsArticleUiState = NewsArticleUiState.Loading
 ) {
     val currentNewsSection: List<Section> by lazy {
         newsSections[currentNewsType]!!
@@ -25,11 +25,11 @@ sealed interface NewsSectionUiState {
 }
 
 
-sealed interface NewsArticleUiState {
-
-    data class Success(val articles: List<Article>) : NewsArticleUiState
-
-    data class Error(val message: String) : NewsArticleUiState
-
-    object Loading : NewsArticleUiState
-}
+//sealed interface NewsArticleUiState {
+//
+//    data class Success(val articles: List<Article>) : NewsArticleUiState
+//
+//    data class Error(val message: String) : NewsArticleUiState
+//
+//    object Loading : NewsArticleUiState
+//}
