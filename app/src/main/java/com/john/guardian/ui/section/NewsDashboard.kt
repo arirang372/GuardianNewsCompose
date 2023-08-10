@@ -93,7 +93,7 @@ private fun NewsDashboardSuccessScreen(
         NavigationItemContent(
             newsType = NewsType.Article,
             icon = Icons.Default.Inbox,
-            text = stringResource(id = R.string.article)
+            text = stringResource(id = R.string.articles_screen)
         ),
         NavigationItemContent(
             newsType = NewsType.LiveBlog,

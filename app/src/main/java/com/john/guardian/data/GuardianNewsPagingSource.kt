@@ -26,9 +26,14 @@ class GuardianNewsPagingSource(
                     )
                 }!!
             section.articles = response.response.results
-            for (article in section.articles!!) {
-                article.mostViewed = response.response.mostViewed
-            }
+            /**
+             *  TODO::
+             *  Temporarilly I need to remove this to display the article.
+             *  Later on, will add it back.
+             */
+//            for (article in section.articles!!) {
+//                article.mostViewed = response.response.mostViewed
+//            }
             LoadResult.Page(
                 data = response.response.results,
                 prevKey = if (page == STARTING_PAGE_INDEX) null else page - 1,

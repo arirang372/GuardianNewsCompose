@@ -32,7 +32,7 @@ class NewsArticlesViewModel(
         fetchArticlesWithPagingData(selectedSection, articleType.toLowerCase())
     }
 
-    private fun fetchArticles(selectedSection: Section, articleType: String = "") =
+    private fun fetchArticlesWithPagingData(selectedSection: Section, articleType: String = "") =
         viewModelScope.launch {
             _articlesState.value =
                 _articlesState.value.copy(
@@ -40,11 +40,11 @@ class NewsArticlesViewModel(
                     uiState = NewsArticlesUiState.Loading
                 )
             try {
-                val result = repository.getArticles(
-                    selectedSection.sectionName.orEmpty(),
+                val result: Flow<PagingData<Article>> = repository.getSectionNewsArticle(
+                    selectedSection,
                     articleType
                 )
-                selectedSection.articles = result.data.orEmpty()
+                selectedSection.pagerData = result
                 _articlesState.value =
                     _articlesState.value.copy(
                         selectedSection = selectedSection,
@@ -59,31 +59,4 @@ class NewsArticlesViewModel(
                     )
             }
         }
-
-    private fun fetchArticlesWithPagingData(selectedSection: Section, articleType: String = "") = viewModelScope.launch {
-        _articlesState.value =
-            _articlesState.value.copy(
-                selectedSection = selectedSection,
-                uiState = NewsArticlesUiState.Loading
-            )
-        try {
-            val result: Flow<PagingData<Article>> = repository.getSectionNewsArticle(
-                selectedSection,
-                articleType
-            )
-            selectedSection.pagerData = result
-            _articlesState.value =
-                _articlesState.value.copy(
-                    selectedSection = selectedSection,
-                    uiState = NewsArticlesUiState.Success(selectedSection.articles.orEmpty())
-                )
-
-        } catch (exception: Exception) {
-            _articlesState.value =
-                _articlesState.value.copy(
-                    selectedSection = selectedSection,
-                    uiState = NewsArticlesUiState.Error(exception.message.toString())
-                )
-        }
-    }
 }

@@ -8,7 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.john.guardian.ui.article.NewsArticlesDestination
-import com.john.guardian.ui.article.NewsArticleScreen
+import com.john.guardian.ui.article.NewsArticlesScreen
+import com.john.guardian.ui.article.SingleArticleScreen
+import com.john.guardian.ui.article.SingleArticleScreenDestination
 import com.john.guardian.ui.section.NewsDashboardScreen
 import com.john.guardian.ui.section.NewsDashboardDestination
 
@@ -27,7 +29,7 @@ fun TheGuardianNewsNavHost(
         ) {
             NewsDashboardScreen(
                 navigateToArticles = { section: String, articleType: String ->
-                    navController.navigate("${NewsArticlesDestination.route}?section=${section}&articleType=${articleType}")
+                    navController.navigate("${NewsArticlesDestination.route}?${NewsArticlesDestination.section}=${section}&${NewsArticlesDestination.articleType}=${articleType}")
                 }
             )
         }
@@ -43,14 +45,28 @@ fun TheGuardianNewsNavHost(
                     defaultValue = ""
                 })
         ) {
-            NewsArticleScreen(
-                navigateToArticle = {
-
+            NewsArticlesScreen(
+                navigateToArticle = { article: String ->
+                    navController.navigate("${SingleArticleScreenDestination.route}?articleObject=${article}")
                 },
                 navigateBack = {
                     navController.navigateUp()
                 }
             )
+        }
+
+        composable(
+            route = SingleArticleScreenDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(SingleArticleScreenDestination.articleObj) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) {
+            SingleArticleScreen(navigateBack = {
+                navController.navigateUp()
+            })
         }
     }
 }
