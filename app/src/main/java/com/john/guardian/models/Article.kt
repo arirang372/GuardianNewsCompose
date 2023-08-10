@@ -28,7 +28,7 @@ data class Article(
     val webUrl: String? = "",
     val apiUrl: String? = "",
     val isHosted: Boolean,
-    val fields: Field?,
+    val fields: Field? = null,
     val pillarId: String? = "",
     var mostViewed: List<Article>? = mutableListOf()
 ) : Comparable<Article>, Parcelable{

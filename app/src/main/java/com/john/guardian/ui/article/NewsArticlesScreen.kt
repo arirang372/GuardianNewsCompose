@@ -35,6 +35,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.gson.Gson
 import com.john.guardian.AppViewModelProvider
 import com.john.guardian.R
 import com.john.guardian.data.NewsArticlesState
@@ -49,15 +50,15 @@ import kotlinx.coroutines.flow.Flow
 
 object NewsArticlesDestination : NavigationDestination {
     override val route = "articles"
-    override val titleRes = R.string.article
+    override val titleRes = R.string.list_of_articles
     const val section = "section"
     const val articleType = "articleType"
-    val routeWithArgs = "$route?section={$section}&articleType={$articleType}"
+    val routeWithArgs = "$route?$section={$section}&$articleType={$articleType}"
 }
 
 @Composable
-fun NewsArticleScreen(
-    navigateToArticle: (Article) -> Unit,
+fun NewsArticlesScreen(
+    navigateToArticle: (String) -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewsArticlesViewModel = viewModel(factory = AppViewModelProvider.Factory)
@@ -88,7 +89,7 @@ private fun NewsArticlesScreen(
     articlesState: NewsArticlesState,
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit = {},
-    onArticlePressed: (Article) -> Unit
+    onArticlePressed: (String) -> Unit
 ) {
 
     Scaffold(topBar = {
@@ -100,7 +101,8 @@ private fun NewsArticlesScreen(
     }) { innerPadding ->
         NewsArticlesContent(
             articlesState = articlesState,
-            modifier = modifier.padding(innerPadding)
+            modifier = modifier.padding(innerPadding),
+            onArticlePressed = onArticlePressed
         )
     }
 }
@@ -110,7 +112,7 @@ private fun NewsArticlesScreen(
 private fun NewsArticlesContent(
     articlesState: NewsArticlesState,
     modifier: Modifier = Modifier,
-    onArticlePressed: (Article) -> Unit = {}
+    onArticlePressed: (String) -> Unit = {}
 ) {
     val pagerData: Flow<PagingData<Article>> = articlesState.selectedSection.pagerData
     val lazyPagingItems: LazyPagingItems<Article> = pagerData.collectAsLazyPagingItems()
@@ -137,7 +139,9 @@ private fun NewsArticlesContent(
             val article = lazyPagingItems[index]!!
             NewsArticleListItem(
                 article = article,
-                onCardClick = { onArticlePressed(article) }
+                onCardClick = {
+                    onArticlePressed(Gson().toJson(article))
+                }
             )
         }
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.john.guardian.viewmodels.NewsArticlesViewModel
 import com.john.guardian.viewmodels.NewsDashboardViewModel
+import com.john.guardian.viewmodels.SingleArticleViewModel
 
 
 object AppViewModelProvider {
@@ -21,6 +22,12 @@ object AppViewModelProvider {
             NewsArticlesViewModel(
                 this.createSavedStateHandle(),
                 guardianApplication().container.repository
+            )
+        }
+
+        initializer {
+            SingleArticleViewModel(
+                this.createSavedStateHandle()
             )
         }
     }
