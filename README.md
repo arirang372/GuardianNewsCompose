@@ -21,3 +21,6 @@ GUARDIAN_API_KEY=<Your Developer API Key>
 ```
 
 Then, save the file and run the app.
+
+https://github.com/arirang372/GuardianNewsCompose/assets/30167760/4ddf8277-7196-4556-92bc-f15eacf05018
+
