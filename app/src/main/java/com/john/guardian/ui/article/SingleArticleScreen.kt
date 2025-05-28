@@ -54,10 +54,21 @@ import com.john.guardian.viewmodels.SingleArticleViewModel
 object SingleArticleScreenDestination : NavigationDestination {
     override val route: String = "article"
     override val titleRes = R.string.single_article
-    const val articleObj = "articleObject"
-    val routeWithArgs = "$route?articleObject={$articleObj}"
+    const val webTitle = "webTitle"
+    const val trailText = "trailText"
+    const val lastModifiedFormatted = "lastModifiedFormatted"
+    const val body = "body"
+    const val thumbnails = "thumbnails"
+    const val sectionName = "sectionName"
+    val routeWithArgs = "$route?webTitle={$webTitle}&trailText={$trailText}&lastModifiedFormatted={$lastModifiedFormatted}&body={$body}&thumbnails={$thumbnails}&sectionName={$sectionName}"
 }
 
+/**
+ *     webTitle: String,
+ *     trailText: String,
+ *     lastModifiedFormatted: String,
+ *     body: String,
+ */
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -66,7 +77,13 @@ fun SingleArticleScreen(
     modifier: Modifier = Modifier,
     viewModel: SingleArticleViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val selectedArticle by viewModel.article.collectAsState()
+    val webTitle by viewModel.webTitle.collectAsState()
+    val trailText by viewModel.trailText.collectAsState()
+    val lastModifiedFormatted by viewModel.lastModifiedFormatted.collectAsState()
+    val body by viewModel.body.collectAsState()
+    val thumbnails by viewModel.thumbnails.collectAsState()
+    val sectionName by viewModel.sectionName.collectAsState()
+
     val listState = rememberLazyListState()
 
     val isCollapsed: Boolean by remember {
@@ -76,7 +93,7 @@ fun SingleArticleScreen(
     Scaffold(
         topBar = {
             CollapedTopBar(
-                article = selectedArticle,
+                sectionNameChild = sectionName,
                 navigateBack = navigateBack,
                 modifier = modifier,
                 isCollapsed = isCollapsed
@@ -90,13 +107,19 @@ fun SingleArticleScreen(
             ) {
                 item {
                     ExpandedTopBar(
-                        article = selectedArticle,
+                        thumbnails = thumbnails,
+                        sectionNameChild = sectionName,
                         navigateBack = navigateBack,
                         modifier
                     )
                 }
                 item {
-                    SingleArticleContent(selectedArticle, modifier)
+                    SingleArticleContent(
+                        webTitle,
+                        trailText,
+                        lastModifiedFormatted,
+                        body,
+                        modifier)
                 }
             }
         }
@@ -105,7 +128,10 @@ fun SingleArticleScreen(
 
 @Composable
 private fun SingleArticleContent(
-    article: Article,
+    webTitle: String,
+    trailText: String,
+    lastModifiedFormatted: String,
+    body: String,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -114,7 +140,7 @@ private fun SingleArticleContent(
             .fillMaxWidth()
     ) {
         Text(
-            text = article.webTitle.orEmpty(),
+            text = webTitle,
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.outline,
             modifier = modifier.padding(start = 8.dp, top = 8.dp)
@@ -122,14 +148,14 @@ private fun SingleArticleContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = article.fields!!.trailText.orEmpty(),
+            text = trailText,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = modifier.padding(start = 8.dp, top = 8.dp)
         )
 
         Text(
-            text = "Updated : ${article.fields!!.lastModifiedFormatted().orEmpty()}",
+            text = "Updated : $lastModifiedFormatted",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = modifier.padding(start = 8.dp, bottom = 16.dp)
@@ -145,7 +171,7 @@ private fun SingleArticleContent(
                 )
                 webViewClient = WebViewClient()
                 loadData(
-                    article.fields.body.orEmpty(),
+                    body,
                     "text/html; charset=utf-8",
                     "UTF-8"
                 )
@@ -158,7 +184,7 @@ private fun SingleArticleContent(
 
 @Composable
 private fun CollapedTopBar(
-    article: Article,
+    sectionNameChild: String,
     navigateBack: () -> Unit,
     modifier: Modifier,
     isCollapsed: Boolean
@@ -189,7 +215,7 @@ private fun CollapedTopBar(
                         contentDescription = stringResource(id = R.string.back)
                     )
                 }
-                Text(text = article.sectionNameChild.orEmpty())
+                Text(text = sectionNameChild)
             }
         }
     }
@@ -197,7 +223,8 @@ private fun CollapedTopBar(
 
 @Composable
 private fun ExpandedTopBar(
-    article: Article,
+    thumbnails: String,
+    sectionNameChild: String,
     navigateBack: () -> Unit,
     modifier: Modifier
 ) {
@@ -211,7 +238,7 @@ private fun ExpandedTopBar(
         AsyncImage(
             modifier = modifier.fillMaxWidth(),
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(article.fields!!.thumbnail)
+                .data(thumbnails)
                 .crossfade(true)
                 .build(),
             error = painterResource(id = R.drawable.ic_broken_image),
@@ -234,7 +261,7 @@ private fun ExpandedTopBar(
             }
             Text(
                 modifier = modifier.padding(start = 16.dp, bottom = 16.dp),
-                text = article.sectionNameChild.orEmpty(),
+                text = sectionNameChild,
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.inverseOnSurface
             )

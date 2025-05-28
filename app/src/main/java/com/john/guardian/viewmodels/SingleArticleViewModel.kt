@@ -11,13 +11,37 @@ import kotlinx.coroutines.flow.StateFlow
 class SingleArticleViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private var articleString: String
-    private val _article = MutableStateFlow(Article(id = 0, isHosted = true))
-    val article: StateFlow<Article> = _article
+    private val _webTitle = MutableStateFlow("")
+    val webTitle: StateFlow<String> = _webTitle
+
+    private val _trailText = MutableStateFlow("")
+    val trailText: StateFlow<String> = _trailText
+
+    private val _lastModifiedFormatted = MutableStateFlow("")
+    val lastModifiedFormatted: StateFlow<String> = _lastModifiedFormatted
+
+    private val _body = MutableStateFlow("")
+    val body: StateFlow<String> = _body
+
+    private val _thumbnails = MutableStateFlow("")
+    val thumbnails: StateFlow<String> = _thumbnails
+
+    private val _sectionName = MutableStateFlow("")
+    val sectionName: StateFlow<String> = _sectionName
+
 
     init {
-        articleString = checkNotNull(savedStateHandle[SingleArticleScreenDestination.articleObj])
-        val selectedArticle: Article = Gson().fromJson(articleString, Article::class.java)
-        _article.value = selectedArticle
+        _webTitle.value = checkNotNull(savedStateHandle[SingleArticleScreenDestination.webTitle])
+
+        _trailText.value = checkNotNull(savedStateHandle[SingleArticleScreenDestination.trailText])
+
+        _lastModifiedFormatted.value = checkNotNull(savedStateHandle[SingleArticleScreenDestination.lastModifiedFormatted])
+
+        _body.value = checkNotNull(savedStateHandle[SingleArticleScreenDestination.body])
+
+        _thumbnails.value = checkNotNull(savedStateHandle[SingleArticleScreenDestination.thumbnails])
+
+        _sectionName.value = checkNotNull(savedStateHandle[SingleArticleScreenDestination.sectionName])
+
     }
 }

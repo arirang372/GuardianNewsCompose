@@ -58,7 +58,7 @@ object NewsArticlesDestination : NavigationDestination {
 
 @Composable
 fun NewsArticlesScreen(
-    navigateToArticle: (String) -> Unit,
+    navigateToArticle: (String, String, String, String, String, String) -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewsArticlesViewModel = viewModel(factory = AppViewModelProvider.Factory)
@@ -89,7 +89,7 @@ private fun NewsArticlesScreen(
     articlesState: NewsArticlesState,
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit = {},
-    onArticlePressed: (String) -> Unit
+    onArticlePressed: (String, String, String, String, String, String) -> Unit,
 ) {
 
     Scaffold(topBar = {
@@ -112,7 +112,7 @@ private fun NewsArticlesScreen(
 private fun NewsArticlesContent(
     articlesState: NewsArticlesState,
     modifier: Modifier = Modifier,
-    onArticlePressed: (String) -> Unit = {}
+    onArticlePressed: (String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _ -> }
 ) {
     val pagerData: Flow<PagingData<Article>> = articlesState.selectedSection.pagerData
     val lazyPagingItems: LazyPagingItems<Article> = pagerData.collectAsLazyPagingItems()
@@ -140,7 +140,13 @@ private fun NewsArticlesContent(
             NewsArticleListItem(
                 article = article,
                 onCardClick = {
-                    onArticlePressed(Gson().toJson(article))
+                    onArticlePressed(article.webTitle.orEmpty(),
+                        article.fields!!.trailText.orEmpty(),
+                        article.fields!!.lastModifiedFormatted().orEmpty(),
+                        article.fields!!.body.orEmpty(),
+                        article.fields!!.thumbnail.orEmpty(),
+                        article.sectionNameChild.orEmpty()
+                    )
                 }
             )
         }

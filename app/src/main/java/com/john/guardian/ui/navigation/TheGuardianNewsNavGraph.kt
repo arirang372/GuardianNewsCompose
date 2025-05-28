@@ -11,6 +11,12 @@ import com.john.guardian.ui.article.NewsArticlesDestination
 import com.john.guardian.ui.article.NewsArticlesScreen
 import com.john.guardian.ui.article.SingleArticleScreen
 import com.john.guardian.ui.article.SingleArticleScreenDestination
+import com.john.guardian.ui.article.SingleArticleScreenDestination.body
+import com.john.guardian.ui.article.SingleArticleScreenDestination.lastModifiedFormatted
+import com.john.guardian.ui.article.SingleArticleScreenDestination.sectionName
+import com.john.guardian.ui.article.SingleArticleScreenDestination.thumbnails
+import com.john.guardian.ui.article.SingleArticleScreenDestination.trailText
+import com.john.guardian.ui.article.SingleArticleScreenDestination.webTitle
 import com.john.guardian.ui.section.NewsDashboardScreen
 import com.john.guardian.ui.section.NewsDashboardDestination
 
@@ -46,8 +52,8 @@ fun TheGuardianNewsNavHost(
                 })
         ) {
             NewsArticlesScreen(
-                navigateToArticle = { article: String ->
-                    navController.navigate("${SingleArticleScreenDestination.route}?articleObject=${article}")
+                navigateToArticle = { webTitle: String, trailText: String, lastModifiedFormatted: String, body: String, thumbnails: String, sectionName: String ->
+                    navController.navigate("${SingleArticleScreenDestination.route}?webTitle={$webTitle}&trailText={$trailText}&lastModifiedFormatted={$lastModifiedFormatted}&body={$body}&thumbnails={$thumbnails}&sectionName={$sectionName}")
                 },
                 navigateBack = {
                     navController.navigateUp()
@@ -58,10 +64,30 @@ fun TheGuardianNewsNavHost(
         composable(
             route = SingleArticleScreenDestination.routeWithArgs,
             arguments = listOf(
-                navArgument(SingleArticleScreenDestination.articleObj) {
+                navArgument(webTitle) {
                     type = NavType.StringType
                     defaultValue = ""
-                }
+                },
+                navArgument(trailText) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(lastModifiedFormatted) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(body) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(thumbnails) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(sectionName) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
             )
         ) {
             SingleArticleScreen(navigateBack = {
